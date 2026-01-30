@@ -33,9 +33,11 @@ Elle permet de gérer les utilisateurs, de récupérer les propriétés locative
 ```env
 
 ODOO_BASE_URL="http://localhost"
-ODOO_DB_NAME="dbname"
-ODOO_DB_USER="user"
-ODOO_DB_PASSWORD="password"
+ODOO_DB_NAME="Progiciel"
+ODOO_DB_USER="test"
+ODOO_DB_PASSWORD="test"
+ODOO_NODE_ENV="PRD"
+YNOTIMMO_PORT=3000
 
 ```
 
@@ -87,7 +89,7 @@ Le back-end est en ligne
 **POST**
 Pour créer une réservation, cette route vérifie si le client existe (via email), si ce n'est pas le cas, il le crée ensuite le devis est crée en mode brouillon.
 
-Attention que product_id doit correspondre à un ID de variante d'article (product.product) et non au template.
+Attention que product_id doit correspondre à un ID de variante d'article (product.product) et non au template. (product.template)
 
 #### req
 ```
@@ -103,9 +105,9 @@ Attention que product_id doit correspondre à un ID de variante d'article (produ
   "lines": [
     {
       "product_id": 32,
-      "name": "Location appartement centre-ville - 3 Nuits",
+      "name": "Villa ensolleilée dans un quartier résidentiel",
       "product_uom_qty": 3,
-      "price_unit": 150
+      "price_unit": 1500
     }
   ]
 }
@@ -148,7 +150,85 @@ draft = devis en cours de traitement (brouillon)
             "date_order": "2026-01-08 07:00:59",
             "state": "sale",
             "amount_total": 544.5
+            "order_line": [
+                {
+                    "product_id": 32,
+                    "name": "Villa ensolleilée dans un quartier résidentiel",
+                    "product_uom_qty": 3,
+                    "price_unit": 1500
+                }
+            ]
         }
     ]
 }
 ```
+
+## Login 
+
+### /api/auth/login
+
+**POST**
+Permet de simuler une connexion utilisateur en demandant à Odoo de vérifier les credentials.
+
+#### req
+```
+{
+    "email": "johndoe@gmail.com",
+    "password": "password123",
+}
+```
+
+## RentalProperty
+
+### /api/rentalProperty/import
+**POST**
+Permet d'importer une propriété locative dans Odoo à partir des données fournies.
+
+#### req
+```
+{
+    "name": "Villa ensolleilée dans un quartier résidentiel",
+    "street": "203 Avenue Mascaux",
+    "number_house": "12B",
+    "postal_code": "6001",
+    "city": "Marcinelle",
+    "description": "Belle villa avec jardin et piscine.",
+    "list_price": 1500,
+    "number_of_bedrooms": 4,
+    "number_of_bathrooms": 3,
+    "climatization": true,
+    "image_1920": "<base64-encoded-image-string>"
+}
+```
+
+#### res
+```
+{
+    "id": 45,
+    "name": "Villa ensolleilée dans un quartier résidentiel",
+    "street": "203 Avenue Mascaux",
+    "number_house": "12B",
+    "postal_code": "6001",
+    "city": "Marcinelle",
+    "description": "Belle villa avec jardin et piscine.",
+    "list_price": 1500,
+    "number_of_bedrooms": 4,
+    "number_of_bathrooms": 3,
+    "climatization": true,
+    "image_1920": "<base64-encoded-image-string>"
+}
+```
+
+### /api/rentalProperty/import-json
+**POST**
+Permet d'importer plusieurs propriétés locatives dans Odoo à partir d'un fichier CSV contenant
+les données.
+
+#### req 
+
+````
+name,description_sale,list_price,street,number_house,postal_code,guest_capacity,number_of_bed,number_of_bedrooms,number_of_bathrooms,climatization,active,property_type,image_1920
+"Appartement cosy au centre-ville","Un superbe appartement avec vue sur la place principale. Parfait pour un couple.",1200,"Grande Place","1A","1000",2,1,1,1,True,True,"appartement","<base64-encoded-image-string>"
+```
+
+

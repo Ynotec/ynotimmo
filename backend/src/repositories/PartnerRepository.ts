@@ -6,17 +6,41 @@ export class PartnerRepository {
   private api: OdooApi
   private model = 'res.partner'
 
-  private get logger(): LoggerService {
-    return LoggerService.getInstance()
-  }
+  private logger: LoggerService
   private serviceName: string = 'PartnerRepository'
 
   constructor() {
+    this.logger = LoggerService.getInstance()
     this.api = OdooApi.getInstance()
   }
 
   async create(partner: IPartner): Promise<number> {
-    return await this.api.call(this.model, 'create', [partner])
+    const methodName = 'create'
+    try {
+      this.logger.debug(this.serviceName, methodName, 'START')
+
+      this.logger.info(
+        this.serviceName,
+        methodName,
+        `Creating partner: ${JSON.stringify(partner)}`
+      )
+      const result = await this.api.call(this.model, 'create', [partner])
+      this.logger.info(
+        this.serviceName,
+        methodName,
+        `Partner created with ID: ${result.id}`
+      )
+      return result
+    } catch (error) {
+      this.logger.error(
+        this.serviceName,
+        methodName,
+        `Error creating partner: ${error}`
+      )
+      throw error
+    } finally {
+      this.logger.debug(this.serviceName, methodName, 'END')
+    }
   }
 
   async update(id: number, partner: IPartner): Promise<boolean> {
@@ -50,8 +74,8 @@ export class PartnerRepository {
         [[['email', '=', email]]],
         { fields: ['id', 'name', 'email'], limit: 1 }
       )
-      
-      if(result && Array.isArray(result) && result.length > 0) {
+
+      if (result && Array.isArray(result) && result.length > 0) {
         return result[0] as IPartner
       }
 
